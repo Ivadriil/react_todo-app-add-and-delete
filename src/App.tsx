@@ -1,5 +1,6 @@
 /* eslint-disable jsx-a11y/label-has-associated-control */
 /* eslint-disable jsx-a11y/control-has-associated-label */
+
 import React, { useEffect, useState } from 'react';
 import { UserWarning } from './UserWarning';
 import { getTodos, USER_ID } from './api/todos';
@@ -14,7 +15,7 @@ import { TypeErroros } from './types/Errors';
 export const App: React.FC = () => {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [tempTodo, setTempTodo] = useState<Todo | null>(null);
-  const [loadingTodoId, setLoadingTodoId] = useState<number | null>(null);
+  const [loadingTodoId, setLoadingTodoId] = useState<number[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [editTitle, setEditTitle] = useState('');
   const [editingTodoId, setEditingTodoId] = useState<number | null>(null);
@@ -61,7 +62,7 @@ export const App: React.FC = () => {
     }
 
     setIsLoading(true);
-    setLoadingTodoId(0);
+    setLoadingTodoId(ids => [...ids, 0]);
     const newTempTodo = {
       id: 0,
       title: trimmedTitle,
@@ -78,6 +79,7 @@ export const App: React.FC = () => {
       });
 
       setTodos(currentPosts => [...currentPosts, newTodo]);
+      setTitle('');
     } catch {
       if (trimmedTitle === '') {
         setError(TypeErroros.AddTodoErrorSpace);
@@ -89,8 +91,7 @@ export const App: React.FC = () => {
     } finally {
       setTempTodo(null);
       setIsLoading(false);
-      setLoadingTodoId(null);
-      setTitle('');
+      setLoadingTodoId(ids => ids.filter(id => id !== 0));
     }
   };
 
@@ -106,8 +107,7 @@ export const App: React.FC = () => {
       return;
     }
 
-    setLoadingTodoId(todoId);
-
+    setLoadingTodoId(ids => [...ids, todoId]);
     postService
       .updateTodo({
         ...currentTodo,
@@ -122,7 +122,7 @@ export const App: React.FC = () => {
       .catch(() => {
         setError(TypeErroros.ErorUppdate);
       })
-      .finally(() => setLoadingTodoId(null));
+      .finally(() => setLoadingTodoId(ids => ids.filter(id => id !== todoId)));
   };
 
   const handleChangeCompleteAll = () => {
@@ -136,17 +136,17 @@ export const App: React.FC = () => {
     });
   };
 
-  function deletePost(todoId: number) {
-    setLoadingTodoId(todoId);
-    postService
-      .deleteTodo(todoId)
-      .then(() => {
-        setTodos(currentTodos =>
-          currentTodos.filter(todo => todo.id !== todoId),
-        );
-      })
-      .catch(() => setError(TypeErroros.ErorDelet))
-      .finally(() => setLoadingTodoId(null));
+  async function deletePost(todoId: number) {
+    setLoadingTodoId(id => [...id, todoId]);
+    try {
+      await postService.deleteTodo(todoId);
+
+      setTodos(currentTodos => currentTodos.filter(todo => todo.id !== todoId));
+    } catch {
+      setError(TypeErroros.ErorDelet);
+    } finally {
+      setLoadingTodoId(id => id.filter(ids => ids !== todoId));
+    }
   }
 
   const removeElement = (todoId: number) => {
@@ -154,14 +154,17 @@ export const App: React.FC = () => {
   };
 
   const removeElementAllCompleted = () => {
-    setLoadingTodoId(null);
     const completedTodos = todos.filter(todo => todo.completed);
+
+    setLoadingTodoId(completedTodos.map(todo => todo.id));
 
     Promise.all(completedTodos.map(todo => postService.deleteTodo(todo.id)))
       .then(() => {
-        setTodos(currntTodos => currntTodos.filter(todo => !todo.completed));
+        setTodos(currentTodos => currentTodos.filter(todo => !todo.completed));
       })
-      .finally(() => setLoadingTodoId(null));
+      .finally(() => {
+        setLoadingTodoId([]);
+      });
   };
 
   useEffect(() => {
@@ -179,7 +182,7 @@ export const App: React.FC = () => {
   }, [category, todos]);
 
   const handleEditSubmit = (todoId: number) => {
-    setLoadingTodoId(todoId);
+    setLoadingTodoId(id => [...id, todoId]);
     const trimmed = editTitle.trim();
 
     if (!trimmed) {
@@ -204,7 +207,7 @@ export const App: React.FC = () => {
       .catch(() => {
         setError(TypeErroros.ErorUppdate);
       })
-      .finally(() => setLoadingTodoId(null));
+      .finally(() => setLoadingTodoId(id => id.filter(ids => ids !== todoId)));
   };
 
   if (!USER_ID) {

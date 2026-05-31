@@ -19,7 +19,7 @@ type Props = {
 
   removeElement: (todoId: number) => void;
 
-  loadingTodoId: number | null;
+  loadingTodoId: number[];
 };
 export const Main: React.FC<Props> = ({
   visibleTodos,

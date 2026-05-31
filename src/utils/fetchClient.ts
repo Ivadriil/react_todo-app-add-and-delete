@@ -1,29 +1,36 @@
 const BASE_URL = 'https://mate.academy/students-api';
 
+function wait(delay: number) {
+  return new Promise(resolve => {
+    setTimeout(resolve, delay);
+  });
+}
+
 type RequestMethod = 'GET' | 'POST' | 'PATCH' | 'DELETE';
 
-async function request<T>(
+function request<T>(
   url: string,
   method: RequestMethod = 'GET',
   data?: unknown,
 ): Promise<T> {
-  const options: RequestInit = {
-    method,
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  };
+  const options: RequestInit = { method };
 
   if (data) {
     options.body = JSON.stringify(data);
+    options.headers = {
+      'Content-Type': 'application/json; charset=UTF-8',
+    };
   }
 
-  const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+  return wait(200)
+    .then(() => fetch(BASE_URL + url, options))
+    .then(response => {
+      if (!response.ok) {
+        throw new Error();
+      }
 
-  await delay(3000);
-  const response = await fetch(BASE_URL + url, options);
-
-  return response.json();
+      return response.json();
+    });
 }
 
 export const client = {

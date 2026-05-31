@@ -18,7 +18,7 @@ type Props = {
 
   removeElement: (todoId: number) => void;
 
-  loadingTodoId: number | null;
+  loadingTodoId: number[];
 };
 
 export const TodoItem: React.FC<Props> = ({
@@ -35,23 +35,23 @@ export const TodoItem: React.FC<Props> = ({
 }) => {
   return (
     <div
+      key={todo.id}
       data-cy="Todo"
       className={cn('todo', {
         completed: todo.completed,
+        'is-active': loadingTodoId.includes(todo.id),
       })}
     >
-      <label className="todo__status-label">
-        <input
-          id={`todo-${todo.id}`}
-          data-cy="TodoStatus"
-          type="checkbox"
-          className="todo__status"
-          checked={todo.completed}
-          onChange={() => handleChangeComplete(todo.id)}
-          disabled={loadingTodoId === todo.id}
-          aria-label="Todo title"
-        />
-      </label>
+      {/* <label className="todo__status-label" htmlFor={`todo-status-${todo.id}`}> */}
+      <input
+        data-cy="TodoStatus"
+        type="checkbox"
+        className="todo__status"
+        checked={todo.completed}
+        onChange={() => handleChangeComplete(todo.id)}
+        disabled={loadingTodoId.includes(todo.id) || isTemp}
+      />
+      {/* </label> */}
 
       {editingTodoId === todo.id ? (
         <form
@@ -90,7 +90,7 @@ export const TodoItem: React.FC<Props> = ({
       <div
         data-cy="TodoLoader"
         className={cn('modal overlay', {
-          'is-active': isTemp || loadingTodoId === todo.id,
+          'is-active': isTemp || loadingTodoId.includes(todo.id),
         })}
       >
         <div className="modal-background has-background-white-ter" />
