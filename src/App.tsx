@@ -154,17 +154,20 @@ export const App: React.FC = () => {
   };
 
   const removeElementAllCompleted = () => {
-    const completedTodos = todos.filter(todo => todo.completed);
+    const completed = todos.filter(todo => todo.completed);
+    const completedIds = completed.map(todo => todo.id);
 
-    setLoadingTodoId(completedTodos.map(todo => todo.id));
+    setLoadingTodoId(ids => [...ids, ...completedIds]);
+    const deletePromises = completed.map(todo =>
+      postService
+        .deleteTodo(todo.id)
+        .then(() => setTodos(curr => curr.filter(t => t.id !== todo.id)))
+        .catch(() => setError(TypeErroros.ErorDelet)),
+    );
 
-    Promise.all(completedTodos.map(todo => postService.deleteTodo(todo.id)))
-      .then(() => {
-        setTodos(currentTodos => currentTodos.filter(todo => !todo.completed));
-      })
-      .finally(() => {
-        setLoadingTodoId([]);
-      });
+    Promise.all(deletePromises).finally(() => {
+      setLoadingTodoId(ids => ids.filter(id => !completedIds.includes(id)));
+    });
   };
 
   useEffect(() => {

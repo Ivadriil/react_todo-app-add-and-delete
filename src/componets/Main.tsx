@@ -35,21 +35,6 @@ export const Main: React.FC<Props> = ({
 }) => {
   return (
     <section className="todoapp__main" data-cy="TodoList">
-      {tempTodo && (
-        <TodoItem
-          todo={tempTodo}
-          isTemp={true}
-          loadingTodoId={loadingTodoId}
-          handleChangeComplete={handleChangeComplete}
-          editingTodoId={editingTodoId}
-          handleEditSubmit={handleEditSubmit}
-          editTitle={editTitle}
-          setEditTitle={setEditTitle}
-          handleDobelChangeTitle={handleDobelChangeTitle}
-          removeElement={removeElement}
-        />
-      )}
-
       {visibleTodos.map(todo => (
         <TodoItem
           key={todo.id}
@@ -64,6 +49,20 @@ export const Main: React.FC<Props> = ({
           removeElement={removeElement}
         />
       ))}
+      {tempTodo && (
+        <TodoItem
+          todo={tempTodo}
+          isTemp={true}
+          loadingTodoId={loadingTodoId}
+          handleChangeComplete={handleChangeComplete}
+          editingTodoId={editingTodoId}
+          handleEditSubmit={handleEditSubmit}
+          editTitle={editTitle}
+          setEditTitle={setEditTitle}
+          handleDobelChangeTitle={handleDobelChangeTitle}
+          removeElement={removeElement}
+        />
+      )}
     </section>
   );
 };

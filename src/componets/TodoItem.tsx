@@ -39,7 +39,7 @@ export const TodoItem: React.FC<Props> = ({
       data-cy="Todo"
       className={cn('todo', {
         completed: todo.completed,
-        'is-active': loadingTodoId.includes(todo.id),
+        'is-active': loadingTodoId.includes(todo.id) || isTemp,
       })}
     >
       {/* <label className="todo__status-label" htmlFor={`todo-status-${todo.id}`}> */}
